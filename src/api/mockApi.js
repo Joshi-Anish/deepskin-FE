@@ -12,5 +12,8 @@ export const mockApi = {
     await wait(500);
     return payload;
   },
- 
+  async save() {
+    await wait(120);
+    return true;
+  },
 };
