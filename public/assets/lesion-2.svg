@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <defs>
+    <linearGradient id="skin" x1="0" x2="1"><stop stop-color="#e7bca4"/><stop offset="1" stop-color="#b46c57"/></linearGradient>
+    <radialGradient id="lesion"><stop stop-color="#3c2019"/><stop offset=".45" stop-color="#74402f"/><stop offset="1" stop-color="#b36f5d" stop-opacity=".25"/></radialGradient>
+  </defs>
+  <rect width="640" height="420" rx="24" fill="#e8f2f5"/>
+  <path d="M-20 330C123 223 244 194 340 172c135-31 208-67 320-113v361H-20z" fill="url(#skin)"/>
+  <path d="M353 211c20-27 61-19 70 11 9 30-22 53-54 47-32-6-38-31-16-58z" fill="url(#lesion)"/>
+  <circle cx="393" cy="225" r="7" fill="#1c1210" opacity=".6"/>
+</svg>
