@@ -93,7 +93,7 @@ export function NewCasePage() {
       <div className="stepper"><div className={step >= 1 ? 'active' : ''}><span>1</span><small>Photo</small></div><i /><div className={step >= 2 ? 'active' : ''}><span>2</span><small>Details</small></div><i /><div className={step >= 3 ? 'active' : ''}><span>3</span><small>Review</small></div></div>
       {step === 1 && <>
         <PageHeader title="Capture the lesion" subtitle="For an accurate review, provide one clear image of one lesion." />
-        <div className="instruction-card"><strong>Photo instructions</strong><ul><li>Use bright, natural lighting.</li><li>Keep the lesion in clear focus.</li><li>Avoid filters or editing.</li><li>One lesion per case submission.</li></ul></div>
+        <div className="instruction-card"><strong>Photo instructions: </strong><ul><li>Use bright, natural lighting.</li><li>Keep the lesion in clear focus.</li><li>Avoid filters or editing.</li><li>One lesion per case submission.</li></ul></div>
         <button className={`upload-zone ${image ? 'has-image' : ''}`} onClick={() => inputRef.current?.click()}>{image ? <img src={image} alt="Selected lesion" /> : <><span><Camera /></span><strong>Upload Photo</strong><small>Camera or Gallery</small></>}</button>
         <input ref={inputRef} type="file" accept="image/jpeg,image/png" hidden onChange={(e) => loadFile(e.target.files?.[0])} />
         {image && <div className="form-row"><button className="secondary-button" onClick={() => inputRef.current?.click()}><RotateCcw size={17}/> Retake / Replace</button><button className="link-button danger" onClick={() => setImage('')}>Remove</button></div>}
