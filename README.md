@@ -1,4 +1,4 @@
-# DeepSkin Medical — React + Vite Frontend Prototype
+# DeepSkin Medical 
 
 A complete frontend-only implementation of the DeepSkin doctor-mediated skin lesion screening workflow. It uses dummy data and `localStorage`, with API-shaped state functions that can later be replaced by Django REST Framework endpoints.
 
