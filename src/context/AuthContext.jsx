@@ -1,33 +1,52 @@
-import { createContext, useContext, useMemo, useState } from 'react';
-import { mockApi } from '../api/mockApi';
-import { useAppData } from './AppDataContext';
+import { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { login as apiLogin, getMe } from '../api/auth';
 
 const AuthContext = createContext(null);
-const SESSION_KEY = 'deepskin-demo-session';
+const TOKEN_KEY = 'deepskin-access-token';
+const REFRESH_KEY = 'deepskin-refresh-token';
+
+function normalizeUser(apiUser) {
+  return {
+    id: apiUser.id,
+    role: apiUser.role,
+    fullName: apiUser.username,
+    specialty: apiUser.specialty,
+  };
+}
 
 export function AuthProvider({ children }) {
-  const { users } = useAppData();
-  const [userId, setUserId] = useState(() => localStorage.getItem(SESSION_KEY));
-  const user = users.find((entry) => entry.id === userId) || null;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (email, password) => {
-    const account = await mockApi.login(users, email, password);
-    localStorage.setItem(SESSION_KEY, account.id);
-    setUserId(account.id);
-    return account;
-  };
+  useEffect(() => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { setLoading(false); return; }
+    getMe()
+      .then(({ data }) => setUser(normalizeUser(data)))
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-  const loginAs = (id) => {
-    localStorage.setItem(SESSION_KEY, id);
-    setUserId(id);
+  const login = async (username, password) => {
+    const { data } = await apiLogin(username, password);
+    localStorage.setItem(TOKEN_KEY, data.access);
+    localStorage.setItem(REFRESH_KEY, data.refresh);
+    const { data: me } = await getMe();
+    const normalized = normalizeUser(me);
+    setUser(normalized);
+    return normalized;
   };
 
   const logout = () => {
-    localStorage.removeItem(SESSION_KEY);
-    setUserId(null);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    setUser(null);
   };
 
-  const value = useMemo(() => ({ user, login, loginAs, logout }), [user]);
+  const value = useMemo(() => ({ user, login, logout, loading }), [user, loading]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

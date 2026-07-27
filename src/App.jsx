@@ -1,28 +1,29 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AuthPage from './pages/AuthPage';
 import { PatientCaseDetail, PatientCases, PatientDashboard, PatientMessages, NewCasePage } from './pages/PatientPages';
-import { DoctorActiveCases, DoctorApplicationStatus, DoctorCaseDetail, DoctorMessages, DoctorQueue } from './pages/DoctorPages';
+import { DoctorActiveCases, DoctorCaseDetail, DoctorMessages, DoctorQueue } from './pages/DoctorPages';
 import { AdminDashboard, AuditLog, DoctorManagement } from './pages/AdminPages';
 import ProfilePage from './pages/ProfilePage';
 import { useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ roles, children }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="app-loading">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
   if (!roles.includes(user.role)) return <Navigate to={homeFor(user)} replace />;
-  if (user.role === 'doctor' && user.verificationStatus !== 'approved') return <Navigate to="/doctor/application-status" replace />;
   return children;
 }
 
 function homeFor(user) {
   if (!user) return '/login';
   if (user.role === 'patient') return '/patient/dashboard';
-  if (user.role === 'doctor') return user.verificationStatus === 'approved' ? '/doctor/queue' : '/doctor/application-status';
+  if (user.role === 'doctor') return '/doctor/queue';
   return '/admin/dashboard';
 }
 
 function RootRedirect() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="app-loading">Loading…</div>;
   return <Navigate to={homeFor(user)} replace />;
 }
 
@@ -31,7 +32,6 @@ export default function App() {
     <Routes>
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<AuthPage />} />
-      <Route path="/doctor/application-status" element={<DoctorApplicationStatus />} />
 
       <Route path="/patient/dashboard" element={<ProtectedRoute roles={['patient']}><PatientDashboard /></ProtectedRoute>} />
       <Route path="/patient/new-case" element={<ProtectedRoute roles={['patient']}><NewCasePage /></ProtectedRoute>} />
