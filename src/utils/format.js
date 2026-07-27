@@ -1,33 +1,33 @@
-export const formatDate = (value, options = {}) => {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', ...options }).format(new Date(value));
-};
-
-export const formatDateTime = (value) => {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value));
-};
-
-export const timeAgo = (value) => {
-  if (!value) return '—';
-  const diff = Math.max(0, Date.now() - new Date(value).getTime());
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ${minutes % 60}m`;
-  return `${Math.floor(hours / 24)}d`;
-};
-
 export const statusLabel = {
   pending: 'Pending',
-  inReview: 'In Review',
+  in_review: 'In Review',
   reviewed: 'Reviewed',
 };
 
 export const verdictLabel = {
   reassure: 'Reassure',
   monitor: 'Monitor',
-  recommendBiopsy: 'Recommend Biopsy',
-  referSpecialist: 'Refer to Specialist',
+  biopsy: 'Recommend Biopsy',
+  refer: 'Refer to Specialist',
 };
+
+export function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+export function formatDateTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+export function timeAgo(iso) {
+  if (!iso) return '—';
+  const seconds = Math.floor((Date.now() - new Date(iso)) / 1000);
+  const units = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  for (const [name, secs] of units) {
+    const val = Math.floor(seconds / secs);
+    if (val >= 1) return `${val} ${name}${val > 1 ? 's' : ''} ago`;
+  }
+  return 'just now';
+}
