@@ -17,7 +17,6 @@ function extractError(err, fallback) {
   if (typeof data === 'string') return data;
   if (data.non_field_errors?.[0]) return data.non_field_errors[0];
   if (data.detail) return data.detail;
-  // DRF field errors come back as { field_name: ["message"] } -- surface the first one
   const firstKey = Object.keys(data)[0];
   if (firstKey && Array.isArray(data[firstKey])) return `${firstKey}: ${data[firstKey][0]}`;
   return fallback;
@@ -54,6 +53,7 @@ export default function AuthPage() {
     event.preventDefault();
     setError('');
     if (!form.username.trim() || !form.password) return setError('Please complete all required fields.');
+    if (form.username.includes(' ')) return setError('Username cannot contain spaces. Letters, digits, and @/./+/-/_ only.');
     if (form.password.length < 8) return setError('Password must be at least 8 characters.');
     if (form.password !== form.confirmPassword) return setError('Passwords do not match.');
     if (accountType === 'doctor' && !licenseFile) return setError('Please attach your license document.');
@@ -84,7 +84,6 @@ export default function AuthPage() {
         setError('');
         alert('Application submitted. You can log in once an administrator approves your account.');
       } else {
-        // Patients can log in immediately -- account is active right away.
         const account = await login(form.username.trim(), form.password);
         navigate(destinationFor(account));
       }
@@ -117,7 +116,7 @@ export default function AuthPage() {
               <button type="button" className={accountType === 'patient' ? 'active' : ''} onClick={() => setAccountType('patient')}>Patient</button>
               <button type="button" className={accountType === 'doctor' ? 'active' : ''} onClick={() => setAccountType('doctor')}>Doctor Application</button>
             </div>
-            <label>Username<input value={form.username} onChange={(e) => set('username', e.target.value)} placeholder="Choose a username" required /></label>
+            <label>Username<input value={form.username} onChange={(e) => set('username', e.target.value)} placeholder="no spaces — letters, digits, @ . + - _" required /></label>
             <label>Email Address<div className="input-with-icon"><Mail size={17} /><input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="you@example.com" /></div></label>
             <label>Phone<input value={form.phone_number} onChange={(e) => set('phone_number', e.target.value)} placeholder="Phone number" /></label>
 
