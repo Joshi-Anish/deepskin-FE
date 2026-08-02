@@ -1,8 +1,9 @@
 import { Bell, ChevronLeft, LogOut, Menu, ShieldCheck, Stethoscope, X } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { statusLabel, verdictLabel } from '../utils/format';
+import { useNotifications } from '../context/NotificationsContext';
+import { statusLabel, timeAgo, verdictLabel } from '../utils/format';
 
 export function Brand({ compact = false }) {
   return (
@@ -106,7 +107,7 @@ export function AppShell({ children, role }) {
         <header className="topbar">
           <button className="icon-button menu-button" onClick={() => setOpen(true)}><Menu /></button>
           <Brand compact />
-          <div className="topbar-actions"><Bell size={19} /><div className="avatar small">{user?.fullName?.[0]}</div></div>
+          <div className="topbar-actions"><NotificationsBell /><div className="avatar small">{user?.fullName?.[0]}</div></div>
         </header>
         <main className="content">{children}</main>
       </div>
@@ -136,6 +137,61 @@ export function Modal({ title, children, onClose, actions }) {
         <div className="modal-body">{children}</div>
         {actions && <div className="modal-actions">{actions}</div>}
       </div>
+    </div>
+  );
+}
+
+export function NotificationsBell() {
+  const { items, unreadCount, markRead, markAllRead } = useNotifications();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const wrapRef = useRef(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    function onDocClick(event) {
+      if (wrapRef.current && !wrapRef.current.contains(event.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  function openItem(id, caseId) {
+    setOpen(false);
+    markRead(id);
+    if (caseId) {
+      const base = user?.role === 'doctor' ? '/doctor/cases'
+        : user?.role === 'admin' ? '/admin/audit' : '/patient/cases';
+      navigate(`${base}/${caseId}`);
+    }
+  }
+
+  return (
+    <div className="notif-wrap" ref={wrapRef}>
+      <button className="icon-button notif-button" onClick={() => setOpen((v) => !v)} aria-label="Notifications">
+        <Bell size={19} />
+        {unreadCount > 0 && <span className="notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+      </button>
+      {open && (
+        <div className="notif-dropdown">
+          <div className="notif-head">
+            <strong>Notifications</strong>
+            {unreadCount > 0 && <button className="link-button" onClick={markAllRead}>Mark all read</button>}
+          </div>
+          <div className="notif-list">
+            {items.length ? items.map((n) => (
+              <button
+                key={n.id}
+                className={`notif-item ${n.read_at ? '' : 'unread'}`}
+                onClick={() => openItem(n.id, n.case)}
+              >
+                <div className="notif-title">{n.body}</div>
+                <div className="notif-meta">{timeAgo(n.created_at)}</div>
+              </button>
+            )) : <p className="muted">No notifications yet.</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
