@@ -165,7 +165,6 @@ export function DoctorCaseDetail() {
 
   const set = (name, value) => setForm((current) => ({ ...current, [name]: value }));
   const activeImage = item.images[activeImageIndex];
-  const isPrimary = activeImage?.is_primary;
 
   async function submitVerdict() {
     setSubmitting(true);
@@ -198,41 +197,46 @@ export function DoctorCaseDetail() {
         <section className="review-column image-review-column">
           <div className="panel-head">
             <div><ImageIcon size={18} /><strong>Image Review ({activeImageIndex + 1}/{item.images.length})</strong></div>
-            {isPrimary && <button className="secondary-button small" onClick={() => setCompare((v) => !v)}>{compare ? 'Overlay view' : 'Side-by-side'}</button>}
+            {activeImage.ai_attention_map && <button className="secondary-button small" onClick={() => setCompare((v) => !v)}>{compare ? 'Overlay view' : 'Side-by-side'}</button>}
           </div>
           <div className={`image-comparison ${compare ? 'side-by-side' : ''}`}>
             <div className="image-stage">
               <img src={activeImage.image} alt="Lesion" />
-              {isPrimary && showHeatmap && item.attention_map_image && (
-                <img src={item.attention_map_image} alt="Attention map overlay" style={{ position: 'absolute', inset: 0, opacity: 0.55, objectFit: 'cover', width: '100%', height: '100%' }} />
+              {showHeatmap && activeImage.ai_attention_map && (
+                <img src={activeImage.ai_attention_map} alt="Attention map overlay" style={{ position: 'absolute', inset: 0, opacity: 0.55, objectFit: 'cover', width: '100%', height: '100%' }} />
               )}
-              <span>{isPrimary ? (showHeatmap ? 'Primary image with AI overlay' : 'Primary image') : 'Additional image'}</span>
+              <span>{showHeatmap && activeImage.ai_attention_map ? 'With AI overlay' : 'Lesion image'}</span>
             </div>
-            {compare && isPrimary && <div className="image-stage"><img src={activeImage.image} alt="Raw" /><span>Raw image</span></div>}
+            {compare && activeImage.ai_attention_map && <div className="image-stage"><img src={activeImage.image} alt="Raw" /><span>Raw image</span></div>}
           </div>
           {item.images.length > 1 && (
             <div className="additional-image-list" style={{ marginTop: '.7rem' }}>
               {item.images.map((img, i) => (
-                <button key={img.id} type="button" onClick={() => setActiveImageIndex(i)} style={{ padding: 0, border: i === activeImageIndex ? '2px solid var(--teal)' : '1px solid var(--border)', borderRadius: 9, overflow: 'hidden' }}>
+                <button key={img.id} type="button" onClick={() => setActiveImageIndex(i)} style={{ position: 'relative', padding: 0, border: i === activeImageIndex ? '2px solid var(--teal)' : '1px solid var(--border)', borderRadius: 9, overflow: 'hidden' }}>
                   <img src={img.image} alt={`Thumbnail ${i + 1}`} style={{ aspectRatio: 1.35, objectFit: 'cover', width: '100%' }} />
+                  {img.ai_prediction === 'malignant' && <span style={{ position: 'absolute', bottom: 4, left: 4, background: '#d6455d', color: '#fff', fontSize: '.58rem', borderRadius: 4, padding: '0 4px' }}>Malignant</span>}
                 </button>
               ))}
             </div>
           )}
-          {isPrimary && item.attention_map_image && (
+          {activeImage.ai_attention_map && (
             <div className="heatmap-controls">
               <label className="switch-row"><input type="checkbox" checked={showHeatmap} onChange={(e) => setShowHeatmap(e.target.checked)} /> Attention map overlay</label>
             </div>
           )}
-          {!isPrimary && <p className="muted" style={{ fontSize: '.75rem', marginTop: '.5rem' }}>Attention map is only generated for the primary image.</p>}
         </section>
 
         <section className="review-column ai-column">
           <div className="panel-head"><div><Layers3 size={18} /><strong>AI Analysis</strong></div><PriorityBadge priority={item.ai_priority} /></div>
-          <div className={`ai-result ${item.ai_priority === 'high' ? 'malignant' : 'benign'}`}>
-            <span>Model confidence</span>
-            <div className="confidence"><i style={{ width: `${item.ai_confidence * 100}%` }} /><span>{Math.round(item.ai_confidence * 100)}%</span></div>
-          </div>
+          {item.ai_status !== 'done' ? (
+            <div className="ai-result"><span>AI analysis</span><strong>Awaiting model result</strong></div>
+          ) : (
+            <div className={`ai-result ${activeImage.ai_prediction === 'malignant' ? 'malignant' : 'benign'}`}>
+              <span>Model prediction {item.images.length > 1 ? `— image ${activeImageIndex + 1}/${item.images.length}` : ''}</span>
+              <strong>{activeImage.ai_prediction === 'malignant' ? 'Malignant pattern' : 'Benign pattern'}</strong>
+              <div className="confidence"><i style={{ width: `${activeImage.ai_confidence * 100}%` }} /><span>{Math.round(activeImage.ai_confidence * 100)}%</span></div>
+            </div>
+          )}
           <dl className="analysis-list">
             <div><dt>Model</dt><dd>EfficientNetB2 + CBAM</dd></div>
             <div><dt>Priority</dt><dd><PriorityBadge priority={item.ai_priority} /></dd></div>
