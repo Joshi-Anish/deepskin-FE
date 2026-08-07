@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
 });
 
 client.interceptors.request.use((config) => {
@@ -17,7 +19,7 @@ client.interceptors.response.use(
       err.config._retry = true;
       try {
         const refresh = localStorage.getItem('deepskin-refresh-token');
-        const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/login/refresh/`, { refresh });
+        const { data } = await axios.post(`${BASE_URL}/auth/login/refresh/`, { refresh });
         localStorage.setItem('deepskin-access-token', data.access);
         err.config.headers.Authorization = `Bearer ${data.access}`;
         return client(err.config);
