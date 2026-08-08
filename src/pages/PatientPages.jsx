@@ -184,7 +184,6 @@ export function NewCasePage() {
         <div className="additional-image-list">{previews.map((src, i) => <img key={i} src={src} alt={`Lesion ${i + 1}`} />)}</div>
         <div className="review-card"><div><span>Optional note</span><p>{note || 'No note provided.'}</p></div></div>
         <label className="check-row consent"><input type="checkbox" defaultChecked /> I consent to secure image processing and doctor review.</label>
-        <div className="alert info">Patients never see the model prediction, confidence score, or attention map. Only the doctor's final assessment is shown.</div>
         {error && <div className="alert error">{error}</div>}
         <div className="form-row sticky-action"><button className="secondary-button" onClick={() => setStep(2)}>Back</button><button className="primary-button" onClick={submit} disabled={busy}>{busy ? 'Submitting…' : 'Submit Case'}</button></div>
       </>}
