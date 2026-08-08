@@ -6,9 +6,12 @@ const client = axios.create({
   baseURL: BASE_URL,
 });
 
+// ModelScope's hosting gateway strips the standard `Authorization` header
+// before requests reach the container, so we send the bearer token in the
+// custom `X-DSK-Token` header the backend is configured to read instead.
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('deepskin-access-token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) config.headers['X-DSK-Token'] = `Bearer ${token}`;
   return config;
 });
 
@@ -21,7 +24,7 @@ client.interceptors.response.use(
         const refresh = localStorage.getItem('deepskin-refresh-token');
         const { data } = await axios.post(`${BASE_URL}/auth/login/refresh/`, { refresh });
         localStorage.setItem('deepskin-access-token', data.access);
-        err.config.headers.Authorization = `Bearer ${data.access}`;
+        err.config.headers['X-DSK-Token'] = `Bearer ${data.access}`;
         return client(err.config);
       } catch {
         localStorage.removeItem('deepskin-access-token');

@@ -21,8 +21,9 @@ export function NotificationsProvider({ children }) {
     return () => { active = false; };
   }, [user]);
 
-  // Real-time push via fetch + ReadableStream.  Using an Authorization header
-  // instead of a JWT in the query-string avoids Firefox/privacy-extension
+  // Real-time push via fetch + ReadableStream.  Using the custom
+  // `X-DSK-Token` header (ModelScope's gateway strips `Authorization`), and
+  // avoiding a JWT in the query-string prevents Firefox/privacy-extension
   // blocking of long bearer tokens in URLs.
   //
   // Resilient loop: never gives up permanently.  Re-reads a fresh access
@@ -64,7 +65,7 @@ export function NotificationsProvider({ children }) {
           if (!token) { if (active) await sleep(3000); continue; }
 
           const res = await fetch(notificationsApi.notificationsStreamUrl(), {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { 'X-DSK-Token': `Bearer ${token}` },
             signal: controller.signal,
           });
 
