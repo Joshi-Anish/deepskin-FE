@@ -21,10 +21,10 @@ export function NotificationsProvider({ children }) {
     return () => { active = false; };
   }, [user]);
 
-  // Real-time push via fetch + ReadableStream.  Using the custom
-  // `X-DSK-Token` header (ModelScope's gateway strips `Authorization`), and
-  // avoiding a JWT in the query-string prevents Firefox/privacy-extension
-  // blocking of long bearer tokens in URLs.
+  // Real-time push via fetch + ReadableStream.  ModelScope's gateway strips
+  // `Authorization` and disallows custom headers in browser preflight, so the
+  // JWT is passed as a `?token=` query param (the backend reads it there and
+  // no preflight is triggered).
   //
   // Resilient loop: never gives up permanently.  Re-reads a fresh access
   // token before every attempt (the axios interceptor in api/client.js may
@@ -64,10 +64,8 @@ export function NotificationsProvider({ children }) {
           const token = localStorage.getItem('deepskin-access-token');
           if (!token) { if (active) await sleep(3000); continue; }
 
-          const res = await fetch(notificationsApi.notificationsStreamUrl(), {
-            headers: { 'X-DSK-Token': `Bearer ${token}` },
-            signal: controller.signal,
-          });
+          const url = `${notificationsApi.notificationsStreamUrl()}?token=${encodeURIComponent(token)}`;
+          const res = await fetch(url, { signal: controller.signal });
 
           // Auth failure: try to refresh the token, then reconnect.
           if (res.status === 401) {
