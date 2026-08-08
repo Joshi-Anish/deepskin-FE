@@ -155,11 +155,11 @@ export function NewCasePage() {
           <strong>Photo instructions</strong>
           <ul><li>Use bright, natural lighting.</li><li>Keep the lesion in clear focus.</li><li>Avoid filters or editing.</li><li>Up to 10 images per case.</li></ul>
         </div>
-        <button className={`upload-zone ${previews.length ? 'has-image' : ''}`} onClick={() => inputRef.current?.click()}>
-          {previews.length ? <img src={previews[0]} alt="Selected lesion" /> : <><span><Camera /></span><strong>Upload Photo</strong><small>Camera or Gallery</small></>}
-        </button>
-        <input ref={inputRef} type="file" accept="image/jpeg,image/png" multiple hidden onChange={(e) => addFiles(e.target.files)} />
-        {previews.length > 0 && (
+        {previews.length === 0 ? (
+          <button className="upload-zone" onClick={() => inputRef.current?.click()}>
+            <span><Camera /></span><strong>Upload Photo</strong><small>Camera or Gallery</small>
+          </button>
+        ) : (
           <div className="additional-image-list">
             {previews.map((src, i) => (
               <div key={i} style={{ position: 'relative' }}>
@@ -169,6 +169,7 @@ export function NewCasePage() {
             ))}
           </div>
         )}
+        <input ref={inputRef} type="file" accept="image/jpeg,image/png" multiple hidden onChange={(e) => addFiles(e.target.files)} />
         {previews.length > 0 && <div className="form-row"><button className="secondary-button" onClick={() => inputRef.current?.click()}><RotateCcw size={17} /> Add More</button></div>}
         {error && <div className="alert error">{error}</div>}
         <button className="primary-button full sticky-action" disabled={!images.length} onClick={() => setStep(2)}>Continue</button>
